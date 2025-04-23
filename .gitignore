@@ -1,0 +1,15 @@
+# Project exclude paths
+/realtime-common/target/
+/realtime-dim/target/
+/realtime-dwd/realtime-dwd-base-db/target/
+/realtime-dwd/realtime-dwd-base-log/target/
+/realtime-dwd/realtime-dwd-interaction-comment-infoo/target/
+/realtime-dwd/realtime-dwd-trade-cart-add/target/
+/realtime-dwd/realtime-dwd-trade-order-cancel-detail/target/
+/realtime-dwd/realtime-dwd-trade-order-detail/target/
+/realtime-dwd/realtime-dwd-trade-order-pay-suc-detail/target/
+/realtime-dwd/realtime-dwd-trade-order-refund/target/
+/realtime-dwd/realtime-dwd-trade-refund-pay-suc-detail/target/
+/realtime-dwd/target/
+/realtime-dws/target/
+/target/
