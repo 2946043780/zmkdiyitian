@@ -29,6 +29,12 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "2946043780"
+  }
+}]]></component>
   <component name="GitSEFilterConfiguration">
     <file-type-list>
       <filtered-out-file-type name="LOCAL_BRANCH" />
@@ -37,6 +43,12 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/2946043780/aaaaa.git",
+    "accountId": "8b5784b1-5955-44a6-accb-6557c09e7105"
+  }
+}]]></component>
   <component name="HighlightingSettingsPerFile">
     <setting file="jar://$PROJECT_DIR$/../../Maven/repositor/org/apache/flink/flink-streaming-java/1.17.0/flink-streaming-java-1.17.0.jar!/org/apache/flink/streaming/runtime/tasks/StreamTask.class" root0="SKIP_INSPECTION" />
   </component>
