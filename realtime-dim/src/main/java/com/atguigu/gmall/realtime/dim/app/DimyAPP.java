@@ -61,10 +61,10 @@ public class DimyAPP {
         env.setRestartStrategy(RestartStrategies.failureRateRestart(3, Time.days(30), Time.seconds(3)));
 
         //2.6 设置状态后端以及检查点存储路径
-        env.setStateBackend(new HashMapStateBackend());
-        env.getCheckpointConfig().setCheckpointStorage("hdfs://cdh01:8020/zmkzmk");
+//        env.setStateBackend(new HashMapStateBackend());
+//        env.getCheckpointConfig().setCheckpointStorage("hdfs://cdh01:8020/zmkzmk");
 
-        System.setProperty("HADOOP_USER_NAME", "hdfs");
+//        System.setProperty("HADOOP_USER_NAME", "hdfs");
 
         String topic = "topic_db";
         String groupid = "zmkzmk";
@@ -101,8 +101,8 @@ public class DimyAPP {
             }
         });
 
-        jsonObjDs.print();
-        //mysql监控数据
+//        jsonObjDs.print();
+//        //mysql监控数据
         Properties props = new Properties();
         props.setProperty("useSSL", "false");
         props.setProperty("allowPublicKeyRetrieval", "true");
@@ -122,8 +122,8 @@ public class DimyAPP {
 
         DataStreamSource<String> mysqlStrDS = env.fromSource(mysqlSource, WatermarkStrategy.noWatermarks(), "mysql_source");
 //        mysqlStrDS.print();
-////
-//        //TT6.对配置流中的数据类型进行转换   jsonStr -> 实体类
+//////
+////        //TT6.对配置流中的数据类型进行转换   jsonStr -> 实体类
         SingleOutputStreamOperator<TableProcessDim> tpDS = mysqlStrDS.map(new MapFunction<String, TableProcessDim>() {
             @Override
             public TableProcessDim map(String jsonStr) throws Exception {
@@ -141,8 +141,8 @@ public class DimyAPP {
         }).setParallelism(1);
 
 //        tpDS.print();
-//////
-//////        //根据配置表中的配置信息到Hbase中执行建表或者删除表等操作
+////////
+////////        //根据配置表中的配置信息到Hbase中执行建表或者删除表等操作
         tpDS = tpDS.map(new RichMapFunction<TableProcessDim, TableProcessDim>() {
 
             private Connection hbaseConn;
@@ -179,206 +179,206 @@ public class DimyAPP {
         }).setParallelism(1);
 
 //        tpDS.print();
-//////
-//////        T8.将配置流中的配置信息进行广播--broadcast
-        MapStateDescriptor<String, TableProcessDim> mapStateDescriptor =
-                new MapStateDescriptor<>("mapStateDescriptor", String.class, TableProcessDim.class);
-        BroadcastStream<TableProcessDim> broadcasDs = tpDS.broadcast(mapStateDescriptor);
+////////
+////////        T8.将配置流中的配置信息进行广播--broadcast
+//        MapStateDescriptor<String, TableProcessDim> mapStateDescriptor =
+//                new MapStateDescriptor<>("mapStateDescriptor", String.class, TableProcessDim.class);
+//        BroadcastStream<TableProcessDim> broadcasDs = tpDS.broadcast(mapStateDescriptor);
+//
+//        //T9.将主流业务数据和广播流配置信息进行关联--connect
+//        BroadcastConnectedStream<JSONObject, TableProcessDim> connectDs = jsonObjDs.connect(broadcasDs);
+//
+//        //T10.处理关联后的数据(判断是否为维度)
+//        SingleOutputStreamOperator<Tuple2<JSONObject, TableProcessDim>> dimDS = connectDs.process(new BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>() {
+//
+//            private Map<String, TableProcessDim> configMap = new HashMap<>();
+//
+//            @Override
+//            public void open(Configuration parameters) throws Exception {
+//
+//                Class.forName("com.mysql.jdbc.Driver");
+//
+//                java.sql.Connection conn = DriverManager.getConnection(Constant.MYSQL_URL, Constant.MYSQL_USER_NAME, Constant.MYSQL_PASSWORD);
+//
+//                String sql = "select * from gmall2024_config.table_process_dim";
+//
+//                PreparedStatement ps = conn.prepareStatement(sql);
+//
+//                ResultSet rs = ps.executeQuery();
+//                ResultSetMetaData metaData = rs.getMetaData();
+//
+//                while (rs.next()) {
+//                    JSONObject jsonObj = new JSONObject();
+//                    for (int i = 1; i <= metaData.getColumnCount(); i++) {
+//                        String columnName = metaData.getColumnName(i);
+//                        Object columnValue = rs.getObject(i);
+//                        jsonObj.put(columnName, columnValue);
+//                    }
+//                    TableProcessDim tableProcessDim = jsonObj.toJavaObject(TableProcessDim.class);
+//                    configMap.put(tableProcessDim.getSourceTable(),tableProcessDim);
+//                }
+//
+//                rs.close();
+//
+//                ps.close();
+//
+//                conn.close();
+//            }
+//
+//            @Override
+//            public void processElement(JSONObject jsonObj, BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>.ReadOnlyContext ctx, Collector<Tuple2<JSONObject,TableProcessDim>> out) throws Exception {
+//                String table = jsonObj.getString("table");
+//                ReadOnlyBroadcastState<String, TableProcessDim> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
+//
+//                TableProcessDim tableProcessDim = null;
+//
+//                if ((tableProcessDim = broadcastState.get(table)) != null
+//                        || (tableProcessDim = configMap.get(table)) != null) {
+//                    // 如果根据表名获取到了对应的配置信息，说明当前处理的是维度数据
+//
+//                    // 将维度数据继续向下游传递(只需要传递data属性内容即可)
+//                    JSONObject dataJsonObj = jsonObj.getJSONObject("data");
+//
+//                    // 在向下游传递数据前，过滤掉不需要传递的属性
+//                    String sinkColumns = tableProcessDim.getSinkColumns();
+//                    deleteNotNeedColumns(dataJsonObj, sinkColumns);
+//
+//                    // 在向下游传递数据前，补充对维度数据的操作类型属性
+//                    String type = jsonObj.getString("type");
+//                    dataJsonObj.put("type", type);
+//
+//                    out.collect(Tuple2.of(dataJsonObj, tableProcessDim));
+//                }
+//            }
+//
+//            @Override
+//            public void processBroadcastElement(TableProcessDim tp, BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>.Context ctx, Collector<Tuple2<JSONObject,TableProcessDim>> out) throws Exception {
+//                String op = tp.getOp();
+//                BroadcastState<String, TableProcessDim> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
+//
+//                String sourceTable = tp.getSourceTable();
+//                if("d".equals(op)){
+//                    broadcastState.remove(sourceTable);
+//                    configMap.remove(sourceTable);
+//                }else {
+//                    broadcastState.put(sourceTable,tp);
+//                    configMap.put(sourceTable,tp);
+//                }
+//            }
+//        });
+//
+//        dimDS.print();
+////////
+////
+        MapStateDescriptor<String, TableProcessDim> mapStateDescriptor
+                = new MapStateDescriptor<String, TableProcessDim>("mapStateDescriptor",String.class,TableProcessDim.class);
+        BroadcastStream<TableProcessDim> broadcastDS = tpDS.broadcast(mapStateDescriptor);
+        BroadcastConnectedStream<JSONObject, TableProcessDim> connectDS = jsonObjDs.connect(broadcastDS);
+        SingleOutputStreamOperator<Tuple2<JSONObject, TableProcessDim>> dimDS  = connectDS.process(
+                new BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>() {
+                    private Map<String,TableProcessDim>configMap= new HashMap<>();
+                    @Override
+                    public void open(Configuration parameters) throws Exception {
+                        //注册驱动
+                        Class.forName("com.mysql.cj.jdbc.Driver");
+                        //建立连接
+                        java.sql.Connection conn = DriverManager.getConnection(Constant.MYSQL_URL, Constant.MYSQL_USER_NAME, Constant.MYSQL_PASSWORD);
+                        //获取数据库操作对象
+                        //获取数据库操作对象
+                        String sql = "select * from gmall2024_config.table_process_dim";
+                        PreparedStatement ps = conn.prepareStatement(sql);
+                        //执行SQL语句
+                        ResultSet rs = ps.executeQuery();
+                        ResultSetMetaData metaData = rs.getMetaData();
+                        //处理结果集
+                        while (rs.next()) {
+                            //定义一个json对象，用于接收遍历出来的数据
+                            JSONObject json0bj = new JSONObject();
+                            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                                String columnName = metaData.getColumnName(i);
+                                Object columnValue = rs.getObject(i);
+                                json0bj.put(columnName, columnValue);
+                                //将json0bi转换为实体类对象，并放到configMap
+                                TableProcessDim tableProcessDim = json0bj.toJavaObject(TableProcessDim.class);
+                                configMap.put(tableProcessDim.getSourceTable(), tableProcessDim);
+                                //释放资源rs.close();ps.close();conn.close();
+                            }
 
-        //T9.将主流业务数据和广播流配置信息进行关联--connect
-        BroadcastConnectedStream<JSONObject, TableProcessDim> connectDs = jsonObjDs.connect(broadcasDs);
-
-        //T10.处理关联后的数据(判断是否为维度)
-        SingleOutputStreamOperator<Tuple2<JSONObject, TableProcessDim>> dimDS = connectDs.process(new BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>() {
-
-            private Map<String, TableProcessDim> configMap = new HashMap<>();
-
-            @Override
-            public void open(Configuration parameters) throws Exception {
-
-                Class.forName("com.mysql.jdbc.Driver");
-
-                java.sql.Connection conn = DriverManager.getConnection(Constant.MYSQL_URL, Constant.MYSQL_USER_NAME, Constant.MYSQL_PASSWORD);
-
-                String sql = "select * from gmall2024_config.table_process_dim";
-
-                PreparedStatement ps = conn.prepareStatement(sql);
-
-                ResultSet rs = ps.executeQuery();
-                ResultSetMetaData metaData = rs.getMetaData();
-
-                while (rs.next()) {
-                    JSONObject jsonObj = new JSONObject();
-                    for (int i = 1; i <= metaData.getColumnCount(); i++) {
-                        String columnName = metaData.getColumnName(i);
-                        Object columnValue = rs.getObject(i);
-                        jsonObj.put(columnName, columnValue);
+                        }
+                        rs.close();
+                        ps.close();
+                        conn.close();
                     }
-                    TableProcessDim tableProcessDim = jsonObj.toJavaObject(TableProcessDim.class);
-                    configMap.put(tableProcessDim.getSourceTable(),tableProcessDim);
-                }
 
-                rs.close();
+                    @Override
+                    public void processElement(JSONObject jsonObj, BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>.ReadOnlyContext ctx, Collector<Tuple2<JSONObject,TableProcessDim>> out) throws Exception {
+                        String table = jsonObj.getString("table");
+                        ReadOnlyBroadcastState<String, TableProcessDim> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
+                        TableProcessDim  tableProcessDim=null;
+                        if((tableProcessDim=broadcastState.get(table))!=null
+                                ||(tableProcessDim=configMap.get(table))!=null){
+                            JSONObject dataJsonObj = jsonObj.getJSONObject("data");
+                            String sinkColumns = tableProcessDim.getSinkColumns();
+                            deleteNotNeedColumns(dataJsonObj,sinkColumns);
+                            String type = jsonObj.getString("type");
+                            dataJsonObj.put("type",type);
+                            out.collect(Tuple2.of(dataJsonObj,tableProcessDim));
+                        }
+                    }
 
-                ps.close();
 
-                conn.close();
-            }
-
-            @Override
-            public void processElement(JSONObject jsonObj, BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>.ReadOnlyContext ctx, Collector<Tuple2<JSONObject,TableProcessDim>> out) throws Exception {
-                String table = jsonObj.getString("table");
-                ReadOnlyBroadcastState<String, TableProcessDim> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
-
-                TableProcessDim tableProcessDim = null;
-
-                if ((tableProcessDim = broadcastState.get(table)) != null
-                        || (tableProcessDim = configMap.get(table)) != null) {
-                    // 如果根据表名获取到了对应的配置信息，说明当前处理的是维度数据
-
-                    // 将维度数据继续向下游传递(只需要传递data属性内容即可)
-                    JSONObject dataJsonObj = jsonObj.getJSONObject("data");
-
-                    // 在向下游传递数据前，过滤掉不需要传递的属性
-                    String sinkColumns = tableProcessDim.getSinkColumns();
-                    deleteNotNeedColumns(dataJsonObj, sinkColumns);
-
-                    // 在向下游传递数据前，补充对维度数据的操作类型属性
-                    String type = jsonObj.getString("type");
-                    dataJsonObj.put("type", type);
-
-                    out.collect(Tuple2.of(dataJsonObj, tableProcessDim));
-                }
-            }
-
-            @Override
-            public void processBroadcastElement(TableProcessDim tp, BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>.Context ctx, Collector<Tuple2<JSONObject,TableProcessDim>> out) throws Exception {
-                String op = tp.getOp();
-                BroadcastState<String, TableProcessDim> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
-
-                String sourceTable = tp.getSourceTable();
-                if("d".equals(op)){
-                    broadcastState.remove(sourceTable);
-                    configMap.remove(sourceTable);
-                }else {
-                    broadcastState.put(sourceTable,tp);
-                    configMap.put(sourceTable,tp);
-                }
-            }
-        });
+                    @Override
+                    public void processBroadcastElement(TableProcessDim tp, BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>.Context ctx, Collector<Tuple2<JSONObject,TableProcessDim>> out) throws Exception {
+                        String op = tp.getOp();
+                        BroadcastState<String, TableProcessDim> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
+                        String sourceTable = tp.getSourceTable();
+                        if ("d".equals(op)){
+                            broadcastState.remove(sourceTable);
+                            configMap.remove(sourceTable);
+                        }else {
+                            broadcastState.put(sourceTable,tp);
+                            configMap.put(sourceTable,tp);
+                        }
+                    }
+                });
 
         dimDS.print();
 //////
+//        dimDS.addSink(new RichSinkFunction<Tuple2<JSONObject, TableProcessDim>>() {
+//            private Connection hbaseConn;
 //
-//        MapStateDescriptor<String, TableProcessDim> mapStateDescriptor
-//                = new MapStateDescriptor<String, TableProcessDim>("mapStateDescriptor",String.class,TableProcessDim.class);
-//        BroadcastStream<TableProcessDim> broadcastDS = tpDS.broadcast(mapStateDescriptor);
-//        BroadcastConnectedStream<JSONObject, TableProcessDim> connectDS = jsonObjDs.connect(broadcastDS);
-//        SingleOutputStreamOperator<Tuple2<JSONObject, TableProcessDim>> dimDS  = connectDS.process(
-//                new BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>() {
-//                    private Map<String,TableProcessDim>configMap= new HashMap<>();
-//                    @Override
-//                    public void open(Configuration parameters) throws Exception {
-//                        //注册驱动
-//                        Class.forName("com.mysql.cj.jdbc.Driver");
-//                        //建立连接
-//                        java.sql.Connection conn = DriverManager.getConnection(Constant.MYSQL_URL, Constant.MYSQL_USER_NAME, Constant.MYSQL_PASSWORD);
-//                        //获取数据库操作对象
-//                        //获取数据库操作对象
-//                        String sql = "select * from gmall2024_config.table_process_dim";
-//                        PreparedStatement ps = conn.prepareStatement(sql);
-//                        //执行SQL语句
-//                        ResultSet rs = ps.executeQuery();
-//                        ResultSetMetaData metaData = rs.getMetaData();
-//                        //处理结果集
-//                        while (rs.next()) {
-//                            //定义一个json对象，用于接收遍历出来的数据
-//                            JSONObject json0bj = new JSONObject();
-//                            for (int i = 1; i <= metaData.getColumnCount(); i++) {
-//                                String columnName = metaData.getColumnName(i);
-//                                Object columnValue = rs.getObject(i);
-//                                json0bj.put(columnName, columnValue);
-//                                //将json0bi转换为实体类对象，并放到configMap
-//                                TableProcessDim tableProcessDim = json0bj.toJavaObject(TableProcessDim.class);
-//                                configMap.put(tableProcessDim.getSourceTable(), tableProcessDim);
-//                                //释放资源rs.close();ps.close();conn.close();
-//                            }
+//            @Override
+//            public void open(Configuration parameters) throws Exception {
+//                hbaseConn = HBaseUtil.getHBaseConnection();
+//            }
 //
-//                        }
-//                        rs.close();
-//                        ps.close();
-//                        conn.close();
-//                    }
+//            @Override
+//            public void close() throws Exception {
+//                HBaseUtil.closeHBaseConnection(hbaseConn);
+//            }
 //
-//                    @Override
-//                    public void processElement(JSONObject jsonObj, BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>.ReadOnlyContext ctx, Collector<Tuple2<JSONObject,TableProcessDim>> out) throws Exception {
-//                        String table = jsonObj.getString("table");
-//                        ReadOnlyBroadcastState<String, TableProcessDim> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
-//                        TableProcessDim  tableProcessDim=null;
-//                        if((tableProcessDim=broadcastState.get(table))!=null
-//                                ||(tableProcessDim=configMap.get(table))!=null){
-//                            JSONObject dataJsonObj = jsonObj.getJSONObject("data");
-//                            String sinkColumns = tableProcessDim.getSinkColumns();
-//                            deleteNotNeedColumns(dataJsonObj,sinkColumns);
-//                            String type = jsonObj.getString("type");
-//                            dataJsonObj.put("type",type);
-//                            out.collect(Tuple2.of(dataJsonObj,tableProcessDim));
-//                        }
-//                    }
+//            //将流中数据写出到HBase
+//            @Override
+//            public void invoke(Tuple2<JSONObject, TableProcessDim> tup, Context context) throws Exception {
+//                JSONObject jsonObj = tup.f0;
+//                TableProcessDim tableProcessDim = tup.f1;
+//                String type = jsonObj.getString("type");
+//                jsonObj.remove("type");
 //
+//                String sinkTable = tableProcessDim.getSinkTable();
 //
-//                    @Override
-//                    public void processBroadcastElement(TableProcessDim tp, BroadcastProcessFunction<JSONObject, TableProcessDim, Tuple2<JSONObject,TableProcessDim>>.Context ctx, Collector<Tuple2<JSONObject,TableProcessDim>> out) throws Exception {
-//                        String op = tp.getOp();
-//                        BroadcastState<String, TableProcessDim> broadcastState = ctx.getBroadcastState(mapStateDescriptor);
-//                        String sourceTable = tp.getSourceTable();
-//                        if ("d".equals(op)){
-//                            broadcastState.remove(sourceTable);
-//                            configMap.remove(sourceTable);
-//                        }else {
-//                            broadcastState.put(sourceTable,tp);
-//                            configMap.put(sourceTable,tp);
-//                        }
-//                    }
-//                });
+//                String rowKey = jsonObj.getString(tableProcessDim.getSinkRowKey());
 //
-//        dimDS.print();
-////
-        dimDS.addSink(new RichSinkFunction<Tuple2<JSONObject, TableProcessDim>>() {
-            private Connection hbaseConn;
-
-            @Override
-            public void open(Configuration parameters) throws Exception {
-                hbaseConn = HBaseUtil.getHBaseConnection();
-            }
-
-            @Override
-            public void close() throws Exception {
-                HBaseUtil.closeHBaseConnection(hbaseConn);
-            }
-
-            //将流中数据写出到HBase
-            @Override
-            public void invoke(Tuple2<JSONObject, TableProcessDim> tup, Context context) throws Exception {
-                JSONObject jsonObj = tup.f0;
-                TableProcessDim tableProcessDim = tup.f1;
-                String type = jsonObj.getString("type");
-                jsonObj.remove("type");
-
-                String sinkTable = tableProcessDim.getSinkTable();
-
-                String rowKey = jsonObj.getString(tableProcessDim.getSinkRowKey());
-
-                //判断对业务数据库维度表进行了什么操作
-                if ("delete".equals(type)) {
-                    //从业务数据库维度表中做了删除操作，需要将HBase维度表中对应的记录也删除掉
-                    HBaseUtil.delRow(hbaseConn,Constant.HBASE_NAMESPACE,sinkTable,rowKey);
-                } else {
-                    String sinkFamily = tableProcessDim.getSinkFamily();
-                    HBaseUtil.putRow(hbaseConn,Constant.HBASE_NAMESPACE,sinkTable,rowKey,sinkFamily,jsonObj);
-                }
-            }
-        });
+//                //判断对业务数据库维度表进行了什么操作
+//                if ("delete".equals(type)) {
+//                    //从业务数据库维度表中做了删除操作，需要将HBase维度表中对应的记录也删除掉
+//                    HBaseUtil.delRow(hbaseConn,Constant.HBASE_NAMESPACE,sinkTable,rowKey);
+//                } else {
+//                    String sinkFamily = tableProcessDim.getSinkFamily();
+//                    HBaseUtil.putRow(hbaseConn,Constant.HBASE_NAMESPACE,sinkTable,rowKey,sinkFamily,jsonObj);
+//                }
+//            }
+//        });
 
 //        //TODO 5.提交作业
         env.execute();

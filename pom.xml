@@ -18,6 +18,7 @@
         <module>realtime-dwd/realtime-dwd-trade-cart-add</module>
         <module>realtime-dwd/realtime-dwd-trade-cart-add</module>
         <module>realtime-dwd/realtime-dwd-trade-order-detail</module>
+        <module>gmall2024-publisher</module>
     </modules>
 
     <properties>
