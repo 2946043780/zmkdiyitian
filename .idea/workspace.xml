@@ -7,7 +7,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0cc418fe-6f05-477f-87f2-ea180ea17955" name="Changes" comment="111" />
+    <list default="true" id="0cc418fe-6f05-477f-87f2-ea180ea17955" name="Changes" comment="111">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -44,6 +46,9 @@
       <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
     </file-type-list>
   </component>
+  <component name="GithubDefaultAccount">
+    <option name="defaultAccountId" value="3f32ff37-9521-41e1-a953-30f73a7946dc" />
+  </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="jar://$PROJECT_DIR$/../../Maven/repositor/org/apache/flink/flink-streaming-java/1.17.0/flink-streaming-java-1.17.0.jar!/org/apache/flink/streaming/runtime/tasks/StreamTask.class" root0="SKIP_INSPECTION" />
   </component>
@@ -71,6 +76,7 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="org.jetbrains.plugins.github.ui.GithubSettingsConfigurable" />
   </component>
   <component name="ReactorSettings">
     <option name="notificationShown" value="true" />
@@ -270,7 +276,7 @@
       <workItem from="1746182713107" duration="500000" />
       <workItem from="1746183257914" duration="3000" />
       <workItem from="1746183275195" duration="87000" />
-      <workItem from="1746184671280" duration="342000" />
+      <workItem from="1746184671280" duration="907000" />
     </task>
     <task id="LOCAL-00001" summary="111">
       <option name="closed" value="true" />
